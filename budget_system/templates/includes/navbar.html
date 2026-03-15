@@ -1,0 +1,56 @@
+<nav class="navbar-neo">
+    <div class="nav-left">
+        <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle menu">
+            <span class="hamburger-icon">&#9776;</span>
+        </button>
+        <a href="/" class="brand">
+            <svg class="brand-logo" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="26" height="26" rx="4" fill="#FFD43B" stroke="#000" stroke-width="2"/>
+                <!-- Piggy bank body -->
+                <ellipse cx="14" cy="16" rx="8" ry="6" fill="#FFB6C1" stroke="#000" stroke-width="1.2"/>
+                <!-- Coin slot -->
+                <rect x="12" y="10.5" width="4" height="1.2" rx="0.6" fill="#000"/>
+                <!-- Eye -->
+                <circle cx="18" cy="14.5" r="1" fill="#000"/>
+                <!-- Snout -->
+                <ellipse cx="21" cy="16" rx="2.2" ry="1.5" fill="#FF9CAD" stroke="#000" stroke-width="0.8"/>
+                <circle cx="20.5" cy="15.7" r="0.5" fill="#000"/>
+                <circle cx="21.5" cy="15.7" r="0.5" fill="#000"/>
+                <!-- Ear -->
+                <ellipse cx="16" cy="11.5" rx="1.8" ry="1.2" fill="#FF9CAD" stroke="#000" stroke-width="0.8" transform="rotate(-20 16 11.5)"/>
+                <!-- Legs -->
+                <rect x="9" y="20.5" width="1.5" height="2.5" rx="0.5" fill="#FFB6C1" stroke="#000" stroke-width="0.7"/>
+                <rect x="12" y="20.5" width="1.5" height="2.5" rx="0.5" fill="#FFB6C1" stroke="#000" stroke-width="0.7"/>
+                <rect x="15" y="20.5" width="1.5" height="2.5" rx="0.5" fill="#FFB6C1" stroke="#000" stroke-width="0.7"/>
+                <rect x="18" y="20.5" width="1.5" height="2.5" rx="0.5" fill="#FFB6C1" stroke="#000" stroke-width="0.7"/>
+            </svg>
+            MXA Budget Smart Assistant
+        </a>
+    </div>
+    <div class="nav-right">
+        {% if user.is_authenticated %}
+        <span class="user-info">
+            {{ user.username }}
+            <span class="role-badge">{{ user_role|upper }}</span>
+        </span>
+        <a href="{% url 'accounts:profile' %}">Profile</a>
+        <a href="{% url 'accounts:logout' %}">Logout</a>
+        {% else %}
+        <a href="{% url 'accounts:login' %}">Login</a>
+        {% endif %}
+    </div>
+</nav>
+<script>
+(function() {
+    var btn = document.getElementById('sidebar-toggle');
+    // Default collapsed
+    if (localStorage.getItem('sidebar') !== 'open') {
+        document.body.classList.add('sidebar-collapsed');
+    }
+    btn.addEventListener('click', function() {
+        document.body.classList.toggle('sidebar-collapsed');
+        localStorage.setItem('sidebar',
+            document.body.classList.contains('sidebar-collapsed') ? 'closed' : 'open');
+    });
+})();
+</script>

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Controllable Analysis - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="budget-toolbar">
+    <div class="version-badge">Controllable vs Non-Controllable</div>
+    <form method="get" class="toolbar-filters" id="filter-form">
+        <div class="filter-chip">
+            <label>Version</label>
+            <select name="version" onchange="this.form.submit()">
+                <option value="">-- Select --</option>
+                {% for v in versions %}
+                <option value="{{ v }}" {% if selected_version == v %}selected{% endif %}>{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+    <div class="toolbar-actions"></div>
+</div>
+
+{% if data %}
+<div class="budget-table-container" style="max-height:calc(100vh - 180px);">
+    <table class="table-neo budget-table" id="budget-table">
+        <thead>
+            <tr>
+                <th style="min-width:160px;">Dept PPT</th>
+                <th style="min-width:120px;">Controllable</th>
+                <th style="min-width:80px;">%</th>
+                <th style="min-width:120px;">Non-Controllable</th>
+                <th style="min-width:80px;">%</th>
+                <th style="min-width:120px;background:#111;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td><strong>{{ row.dept_ppt }}</strong></td>
+                <td>${{ row.controllable|floatformat:0 }}</td>
+                <td style="color:#666;">{{ row.ctrl_pct|floatformat:0 }}%</td>
+                <td>${{ row.non_controllable|floatformat:0 }}</td>
+                <td style="color:#666;">{{ row.non_ctrl_pct|floatformat:0 }}%</td>
+                <td data-role="row-total">${{ row.total|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ data|length }}</span> departments</span>
+    <span></span>
+</div>
+
+{% elif selected_version %}
+<div class="budget-table-container">
+    <div class="budget-empty">
+        <div class="empty-icon">&#x1F4CA;</div>
+        <div class="empty-text">No data found for this version</div>
+    </div>
+</div>
+{% else %}
+<div class="budget-table-container">
+    <div class="budget-empty">
+        <div class="empty-icon">&#x1F50D;</div>
+        <div class="empty-text">Select a version to view analysis</div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

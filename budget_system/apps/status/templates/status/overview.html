@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Submission Status - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="budget-toolbar">
+    <div class="version-badge">Submission Status</div>
+    <form method="get" class="toolbar-filters" id="filter-form">
+        <div class="filter-chip">
+            <label>Version</label>
+            <select name="version" onchange="this.form.submit()">
+                {% for v in versions %}
+                <option value="{{ v }}" {% if selected_version == v %}selected{% endif %}>{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+    <div class="toolbar-actions"></div>
+</div>
+
+{% if statuses %}
+<!-- Summary Cards -->
+<div class="grid-4 mb-2" style="gap:10px;">
+    <div class="card-neo card-neo-green" style="padding:10px 14px;">
+        <div class="card-title" style="font-size:11px;margin-bottom:4px;">Complete</div>
+        <div class="card-value" style="font-size:16px;">{{ summary.complete }}/{{ summary.total }}</div>
+    </div>
+    <div class="card-neo" style="background:var(--neo-orange);padding:10px 14px;">
+        <div class="card-title" style="font-size:11px;margin-bottom:4px;">Under Review</div>
+        <div class="card-value" style="font-size:16px;">{{ summary.under_review }}/{{ summary.total }}</div>
+    </div>
+    <div class="card-neo card-neo-yellow" style="padding:10px 14px;">
+        <div class="card-title" style="font-size:11px;margin-bottom:4px;">Editing</div>
+        <div class="card-value" style="font-size:16px;">{{ summary.editing }}/{{ summary.total }}</div>
+    </div>
+    <div class="card-neo" style="background:var(--neo-gray-200);padding:10px 14px;">
+        <div class="card-title" style="font-size:11px;margin-bottom:4px;">Not Started</div>
+        <div class="card-value" style="font-size:16px;">{{ summary.not_started }}/{{ summary.total }}</div>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+{% if summary.total > 0 %}
+<div class="progress-neo mb-2" style="height:24px;">
+    <div class="progress-neo-bar" style="width:{% widthratio summary.complete summary.total 100 %}%;font-size:11px;">
+        {% widthratio summary.complete summary.total 100 %}% Complete
+    </div>
+</div>
+{% endif %}
+
+<!-- Status Table -->
+<div class="budget-table-container" style="max-height:calc(100vh - 340px);">
+    <table class="table-neo budget-table" id="status-table">
+        <thead>
+            <tr>
+                <th style="min-width:100px;">Area</th>
+                <th style="min-width:100px;">Department</th>
+                <th style="min-width:160px;">Dept PPT</th>
+                <th style="min-width:120px;">Budgeter</th>
+                <th style="min-width:160px;">Status</th>
+                <th style="min-width:140px;">Updated At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in statuses %}
+            <tr data-dept-ppt="{{ s.dept_ppt }}">
+                <td>{{ s.area }}</td>
+                <td>{{ s.dept }}</td>
+                <td><strong>{{ s.dept_ppt }}</strong></td>
+                <td>{{ s.budgeter }}</td>
+                <td>
+                    <select class="status-select input-neo"
+                            data-dept-ppt="{{ s.dept_ppt }}"
+                            data-original="{{ s.status }}"
+                            style="font-size:11px;padding:4px 28px 4px 8px;font-weight:700;min-width:140px;">
+                        <option value="not_started" {% if s.status == 'not_started' %}selected{% endif %}>Not Started</option>
+                        <option value="editing" {% if s.status == 'editing' %}selected{% endif %}>Editing</option>
+                        <option value="under_review" {% if s.status == 'under_review' %}selected{% endif %}>Under Review</option>
+                        <option value="complete" {% if s.status == 'complete' %}selected{% endif %}>Complete</option>
+                    </select>
+                </td>
+                <td style="font-size:11px;color:#888;">
+                    {% if s.updated_at %}{{ s.updated_at|date:"Y-m-d H:i" }}{% else %}-{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ statuses|length }}</span> departments</span>
+    <span></span>
+</div>
+
+{% else %}
+<div class="budget-table-container">
+    <div class="budget-empty">
+        <div class="empty-icon">&#x1F4CA;</div>
+        <div class="empty-text">No department data found for this version</div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var csrfToken = '{{ csrf_token }}';
+    var version = '{{ selected_version }}';
+    var updateUrl = '{% url "status:update_status" %}';
+
+    var selects = document.querySelectorAll('.status-select');
+    selects.forEach(function(sel) {
+        applyStatusStyle(sel);
+        sel.addEventListener('change', function() {
+            var deptPpt = this.dataset.deptPpt;
+            var newStatus = this.value;
+            var selectEl = this;
+
+            fetch(updateUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    version: version,
+                    dept_ppt: deptPpt,
+                    new_status: newStatus,
+                }),
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status === 'ok') {
+                    selectEl.dataset.original = newStatus;
+                    applyStatusStyle(selectEl);
+                } else {
+                    alert('Error: ' + (data.message || 'Update failed'));
+                    selectEl.value = selectEl.dataset.original;
+                }
+            })
+            .catch(function() {
+                alert('Network error');
+                selectEl.value = selectEl.dataset.original;
+            });
+        });
+    });
+
+    function applyStatusStyle(sel) {
+        var colors = {
+            'not_started': {bg: 'var(--neo-gray-200)', border: 'var(--neo-gray-400)'},
+            'editing': {bg: 'var(--neo-hover-yellow)', border: 'var(--neo-yellow)'},
+            'under_review': {bg: '#FFE0B2', border: 'var(--neo-orange)'},
+            'complete': {bg: '#C8E6C9', border: 'var(--neo-green-dark)'},
+        };
+        var c = colors[sel.value] || colors['not_started'];
+        sel.style.background = c.bg;
+        sel.style.borderColor = c.border;
+        // Re-apply the dropdown arrow
+        sel.style.backgroundImage = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M5 7L1 3h8z' fill='%23000'/%3E%3C/svg%3E\")";
+        sel.style.backgroundRepeat = 'no-repeat';
+        sel.style.backgroundPosition = 'right 8px center';
+    }
+})();
+</script>
+{% endblock %}

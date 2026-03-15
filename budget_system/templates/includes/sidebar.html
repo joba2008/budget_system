@@ -1,0 +1,29 @@
+<aside class="sidebar-neo">
+    <a href="{% url 'dashboard:index' %}" class="menu-item {% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}">
+        <span class="menu-icon">&#9632;</span> Dashboard
+    </a>
+    <a href="{% url 'budget:version_list' %}" class="menu-item {% if request.resolver_match.app_name == 'budget' %}active{% endif %}">
+        <span class="menu-icon">&#9998;</span> Budget Edit
+    </a>
+    <div class="menu-section">Reports</div>
+    <a href="{% url 'reports:controllable' %}" class="menu-item {% if request.resolver_match.url_name == 'controllable' %}active{% endif %}">
+        <span class="menu-icon">&#9881;</span> Controllable
+    </a>
+    <a href="{% url 'reports:category_mix' %}" class="menu-item {% if request.resolver_match.url_name == 'category_mix' %}active{% endif %}">
+        <span class="menu-icon">&#9783;</span> Category Mix
+    </a>
+    <div class="menu-section">Data</div>
+    <a href="{% url 'importer:upload' %}" class="menu-item {% if request.resolver_match.app_name == 'importer' %}active{% endif %}">
+        <span class="menu-icon">&#8679;</span> Import
+    </a>
+    {% if is_admin %}
+    <div class="menu-section">Admin</div>
+    <a href="{% url 'status:overview' %}" class="menu-item {% if request.resolver_match.app_name == 'status' %}active{% endif %}">
+        <span class="menu-icon">&#9873;</span> Status
+    </a>
+    <a href="{% url 'accounts:user_management' %}" class="menu-item {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
+        <span class="menu-icon">&#128100;</span> Users
+    </a>
+    {% endif %}
+    <div class="sidebar-dev-badge">AUTO-YUCHUNWEI</div>
+</aside>

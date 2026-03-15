@@ -1,0 +1,33 @@
+; ============================================================
+; BSA Budget System Configuration
+; Copy this file to config.ini and fill in actual values
+; ============================================================
+
+[app]
+secret_key = your-django-secret-key-here
+debug = true
+allowed_hosts = localhost,127.0.0.1
+
+[database]
+engine = postgresql
+name = budget_system
+host = localhost
+port = 5432
+user = postgres
+password =
+; SQL Server: uncomment and set engine = mssql
+; driver = ODBC Driver 17 for SQL Server
+
+[ldap]
+enabled = false
+server_uri = ldap://ad.yourcompany.com:389
+bind_dn = CN=svc_bsa,OU=ServiceAccounts,DC=yourcompany,DC=com
+bind_password =
+search_base = OU=Users,DC=yourcompany,DC=com
+user_attr = sAMAccountName
+
+[redis]
+enabled = false
+host = 127.0.0.1
+port = 6379
+db = 0

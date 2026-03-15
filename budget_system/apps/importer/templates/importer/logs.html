@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Import Logs - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="budget-toolbar">
+    <div class="version-badge">Import History</div>
+    <div class="toolbar-filters"></div>
+    <div class="toolbar-actions">
+        <a href="{% url 'importer:upload' %}" class="btn-recalc" style="text-decoration:none;color:#000;">
+            <span class="icon">+</span> New Import
+        </a>
+    </div>
+</div>
+
+<div class="budget-table-container" style="max-height:calc(100vh - 180px);">
+    <table class="table-neo budget-table" id="budget-table">
+        <thead>
+            <tr>
+                <th style="min-width:130px;">Time</th>
+                <th style="min-width:100px;">Version</th>
+                <th style="min-width:180px;">File</th>
+                <th class="text-right" style="min-width:70px;">Total</th>
+                <th class="text-right" style="min-width:70px;">Success</th>
+                <th class="text-right" style="min-width:70px;">Failed</th>
+                <th style="min-width:90px;">User</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.imported_at|date:"Y-m-d H:i" }}</td>
+                <td><span class="badge-neo badge-neo-info">{{ log.version }}</span></td>
+                <td>{{ log.file_name }}</td>
+                <td class="text-right">{{ log.total_rows }}</td>
+                <td class="text-right" style="color:var(--neo-green-dark);font-weight:700;">{{ log.success_rows }}</td>
+                <td class="text-right {% if log.failed_rows %}negative{% endif %}" style="font-weight:700;">{{ log.failed_rows }}</td>
+                <td>{{ log.imported_by.username|default:'-' }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7">
+                <div class="budget-empty">
+                    <div class="empty-icon">&#x1F4C1;</div>
+                    <div class="empty-text">No imports yet</div>
+                </div>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ logs|length }}</span> imports</span>
+    <span></span>
+</div>
+{% endblock %}

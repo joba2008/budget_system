@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard - MXA Budget Smart Assistant{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+<style>
+.dash-top-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.dash-version-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    align-self: center;
+}
+.dash-version-filter .ver-label {
+    font-weight: 900;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+.dash-version-filter select {
+    border: 2px solid #000;
+    padding: 5px 28px 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #fff;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M5 7L1 3h8z' fill='%23000'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+    min-width: 120px;
+    outline: none;
+}
+.dash-kpi {
+    flex: 1;
+    padding: 8px 14px;
+    min-width: 0;
+    margin-bottom: 0;
+}
+.dash-kpi .card-title { font-size: 10px; margin-bottom: 2px; }
+.dash-kpi .card-value { font-size: 15px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Version filter + KPI cards in one row -->
+<div class="dash-top-row">
+    <form method="get" class="dash-version-filter">
+        <span class="ver-label">Version</span>
+        <select name="version" onchange="this.form.submit()">
+            <option value="">-- Select --</option>
+            {% for v in versions %}
+            <option value="{{ v }}" {% if selected_version == v %}selected{% endif %}>{{ v }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    {% if kpi %}
+    <div class="card-neo card-neo-blue dash-kpi">
+        <div class="card-title">Budget</div>
+        <div class="card-value">${{ kpi.budget|floatformat:0 }}</div>
+    </div>
+    <div class="card-neo card-neo-green dash-kpi">
+        <div class="card-title">Actual</div>
+        <div class="card-value">${{ kpi.actual|floatformat:0 }}</div>
+    </div>
+    <div class="card-neo card-neo-pink dash-kpi">
+        <div class="card-title">Cost Saving</div>
+        <div class="card-value">${{ kpi.saving|floatformat:0 }}</div>
+    </div>
+    <div class="card-neo card-neo-yellow dash-kpi">
+        <div class="card-title">B1 vs Rebase</div>
+        <div class="card-value">${{ kpi.b1_vs_rebase|floatformat:0 }}</div>
+    </div>
+    {% endif %}
+</div>
+
+{% if kpi %}
+<!-- Spend Trend Chart (full width) -->
+<div class="card-neo" style="margin-bottom:0;">
+    <div class="d-flex" style="justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="card-title" style="margin-bottom:0;">Spend & Loading Trend</div>
+        <div id="dept-filter" style="display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;font-weight:600;">
+            {% for dept in dept_ppts %}
+            <label style="cursor:pointer;white-space:nowrap;">
+                <input type="checkbox" class="dept-checkbox" value="{{ dept }}" checked style="margin-right:3px;">
+                {{ dept }}
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    <div id="spend-trend-chart" style="height:400px;"></div>
+</div>
+
+<!-- Budget Waterfall -->
+<div class="card-neo" style="margin-top:19px;">
+    <div class="card-title">Budget Waterfall</div>
+    <div id="waterfall-chart" style="height:400px;"></div>
+</div>
+
+{% else %}
+<div class="card-neo" style="text-align:center;padding:64px;color:#666;">
+    <p style="font-size:18px;font-weight:700;">No budget data available.</p>
+    <p>Import data to see the dashboard.</p>
+    <a href="{% url 'importer:upload' %}" class="btn-neo btn-neo-primary mt-2">Import Data</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if kpi %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="{% static 'js/echarts_neo_theme.js' %}"></script>
+<script src="{% static 'js/dashboard_charts.js' %}"></script>
+<script>
+window.DASHBOARD_CONFIG = {
+    chartDataUrl: '{% url "dashboard:chart_data" %}',
+    version: '{{ selected_version }}',
+};
+initDashboard();
+</script>
+{% endif %}
+{% endblock %}

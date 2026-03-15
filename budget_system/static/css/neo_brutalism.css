@@ -1,0 +1,408 @@
+/* ============================================================
+   BSA Budget System - Neo Brutalism Core Styles
+   ============================================================ */
+
+:root {
+    /* Primary palette - Sunny Neobrutalism (ref: 007) */
+    --neo-yellow: #FFC83D;
+    --neo-blue: #4A90D9;
+    --neo-green: #34C759;
+    --neo-pink: #FF6B8A;
+    /* Functional */
+    --neo-black: #1A1A1A;
+    --neo-white: #FFFFFF;
+    --neo-red: #EF476F;
+    --neo-green-dark: #2EAA4F;
+    /* Extended */
+    --neo-purple: #7B61FF;
+    --neo-orange: #FF9F43;
+    --neo-teal: #17A2B8;
+    --neo-rose: #EF476F;
+    /* Neutrals */
+    --neo-gray-100: #F9F5F0;
+    --neo-gray-200: #F0ECE5;
+    --neo-gray-300: #DDD8D0;
+    --neo-gray-400: #B8B0A6;
+    --neo-hover-yellow: #FFF3D6;
+    /* Background */
+    --neo-bg-yellow: #FFC83D;
+    /* Borders & shadows */
+    --neo-border: 2.5px solid #1A1A1A;
+    --neo-border-thin: 2px solid #1A1A1A;
+    --neo-shadow: 4px 4px 0px #1A1A1A;
+    --neo-shadow-lg: 6px 6px 0px #1A1A1A;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-weight: 500;
+    color: var(--neo-black);
+    background-color: var(--neo-bg-yellow);
+    background-image: radial-gradient(circle, #c8a030 1px, transparent 1px);
+    background-size: 18px 18px;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+/* ---- Buttons ---- */
+.btn-neo {
+    border: 3px solid var(--neo-black);
+    border-radius: 12px;
+    box-shadow: var(--neo-shadow);
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+}
+.btn-neo:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--neo-black);
+}
+.btn-neo:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--neo-black);
+}
+.btn-neo-primary { background: var(--neo-yellow); color: var(--neo-black); }
+.btn-neo-danger { background: var(--neo-red); color: #fff; }
+.btn-neo-info { background: var(--neo-blue); color: #fff; }
+.btn-neo-success { background: var(--neo-green-dark); color: #fff; }
+.btn-neo-dark { background: var(--neo-black); color: var(--neo-yellow); }
+.btn-neo-sm {
+    padding: 6px 14px;
+    font-size: 12px;
+    box-shadow: 3px 3px 0px #666;
+}
+
+/* ---- Cards ---- */
+.card-neo {
+    border: var(--neo-border);
+    border-radius: 16px;
+    box-shadow: var(--neo-shadow-lg);
+    background: var(--neo-white);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.card-neo-yellow { background: var(--neo-yellow); }
+.card-neo-blue { background: var(--neo-blue); }
+.card-neo-green { background: var(--neo-green); }
+.card-neo-pink { background: var(--neo-pink); }
+.card-neo-red { background: var(--neo-red); }
+
+.card-neo .card-title {
+    font-weight: 900;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+.card-neo .card-value {
+    font-weight: 900;
+    font-size: 28px;
+    line-height: 1.2;
+}
+
+/* ---- Tables ---- */
+.table-neo {
+    width: 100%;
+    border: 2.5px solid var(--neo-black);
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--neo-white);
+    border-radius: 14px;
+    overflow: hidden;
+}
+.table-neo th {
+    background: var(--neo-black);
+    color: var(--neo-yellow);
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    border-bottom: 2.5px solid var(--neo-black);
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.table-neo td {
+    border-bottom: 1.5px solid var(--neo-gray-300);
+    border-right: 1px solid var(--neo-gray-300);
+    padding: 10px 16px;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+}
+.table-neo td:last-child {
+    border-right: none;
+}
+.table-neo tr:hover {
+    background: var(--neo-hover-yellow);
+}
+.table-neo .subtotal-row {
+    background: var(--neo-gray-200);
+    font-weight: 700;
+    border-top: 3px solid #000;
+}
+.table-neo .grand-total-row {
+    background: var(--neo-yellow);
+    font-weight: 900;
+    border-top: 4px solid #000;
+}
+.table-neo .text-right {
+    text-align: right;
+}
+.table-neo .text-center {
+    text-align: center;
+}
+.table-neo .negative {
+    color: var(--neo-red);
+}
+.table-neo .positive {
+    color: var(--neo-green-dark);
+}
+
+/* ---- Inputs ---- */
+.input-neo {
+    border: var(--neo-border-thin);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 14px;
+    outline: none;
+    width: 100%;
+    background: var(--neo-white);
+}
+.input-neo:focus {
+    box-shadow: 3px 3px 0px var(--neo-blue);
+    border-color: #000;
+}
+.input-neo-changed {
+    background: var(--neo-hover-yellow);
+    border-color: var(--neo-orange);
+}
+.input-neo-error {
+    background: var(--neo-pink);
+    border-color: var(--neo-red);
+}
+
+select.input-neo {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%23000'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+/* ---- Form Groups ---- */
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+/* ---- Alerts / Messages ---- */
+.alert-neo {
+    border: var(--neo-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    box-shadow: var(--neo-shadow);
+}
+.alert-neo-error { background: var(--neo-red); }
+.alert-neo-success { background: var(--neo-green); }
+.alert-neo-warning { background: var(--neo-yellow); }
+.alert-neo-info { background: var(--neo-blue); }
+
+/* ---- Badges ---- */
+.badge-neo {
+    display: inline-block;
+    padding: 4px 10px;
+    border: 2px solid var(--neo-black);
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.badge-neo-success { background: var(--neo-green-dark); }
+.badge-neo-warning { background: var(--neo-orange); }
+.badge-neo-danger { background: var(--neo-red); }
+.badge-neo-info { background: var(--neo-blue); }
+.badge-neo-default { background: var(--neo-gray-200); }
+
+/* ---- Status indicators ---- */
+.status-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #000;
+    margin-right: 6px;
+}
+.status-dot-green { background: var(--neo-green-dark); }
+.status-dot-orange { background: var(--neo-orange); }
+.status-dot-gray { background: var(--neo-gray-400); }
+
+/* ---- Progress bar ---- */
+.progress-neo {
+    height: 24px;
+    border: 2px solid #000;
+    background: var(--neo-gray-200);
+}
+.progress-neo-bar {
+    height: 100%;
+    background: var(--neo-green-dark);
+    transition: width 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+/* ---- Pagination ---- */
+.pagination-neo {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    padding: 0;
+}
+.pagination-neo a,
+.pagination-neo span {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 2px solid #000;
+    font-weight: 700;
+    text-decoration: none;
+    color: #000;
+    background: var(--neo-white);
+}
+.pagination-neo .active span {
+    background: var(--neo-yellow);
+}
+
+/* ---- Filter bar ---- */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-end;
+    padding: 8px;
+    border: var(--neo-border);
+    border-radius: 12px;
+    background: var(--neo-white);
+    margin-bottom: 10px;
+    box-shadow: var(--neo-shadow);
+}
+.filter-bar .filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.filter-bar .filter-item label {
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+.filter-bar .filter-item select,
+.filter-bar .filter-item input {
+    min-width: 120px;
+    padding: 4px 6px;
+    font-size: 12px;
+}
+
+/* ---- Expandable rows ---- */
+.row-toggle {
+    cursor: pointer;
+    user-select: none;
+}
+.row-toggle::before {
+    content: '\229E';  /* ⊞ */
+    margin-right: 6px;
+    font-weight: 900;
+}
+.row-toggle.expanded::before {
+    content: '\229F';  /* ⊟ */
+}
+
+/* ---- Utility ---- */
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.font-bold { font-weight: 700; }
+.font-black { font-weight: 900; }
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+.p-1 { padding: 8px; }
+.p-2 { padding: 16px; }
+.p-3 { padding: 24px; }
+.d-flex { display: flex; }
+.gap-2 { gap: 16px; }
+.gap-3 { gap: 24px; }
+.flex-wrap { flex-wrap: wrap; }
+.align-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.w-full { width: 100%; }
+
+/* ---- Heatmap cells ---- */
+.heatmap-cell { padding: 8px; text-align: center; font-weight: 700; }
+.heat-deep-green { background: #2B8A3E; color: #fff; }
+.heat-light-green { background: #B2F2BB; }
+.heat-normal { background: var(--neo-gray-100); }
+.heat-light-red { background: var(--neo-pink); }
+.heat-deep-red { background: var(--neo-red); color: #fff; }
+
+/* ---- Tooltip ---- */
+.neo-tooltip {
+    position: relative;
+}
+.neo-tooltip .tooltip-text {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: var(--neo-yellow);
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 2px solid #000;
+    z-index: 1000;
+}
+.neo-tooltip:hover .tooltip-text {
+    display: block;
+}
+
+/* ---- Notification badge ---- */
+.notif-badge {
+    display: inline-block;
+    background: var(--neo-red);
+    color: #fff;
+    border: 2px solid #000;
+    border-radius: 0;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 900;
+    position: absolute;
+    top: -4px;
+    right: -4px;
+}

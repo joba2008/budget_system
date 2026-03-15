@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MXA Budget Smart Assistant</title>
+    <link rel="stylesheet" href="{% static 'css/neo_brutalism.css' %}">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #000;
+        }
+        .login-container {
+            width: 420px;
+        }
+        .login-header {
+            background: var(--neo-yellow);
+            border: 3px solid #000;
+            border-bottom: none;
+            padding: 32px;
+            text-align: center;
+        }
+        .login-header h1 {
+            font-weight: 900;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0 0 4px;
+        }
+        .login-header p {
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .login-form {
+            background: #fff;
+            border: 3px solid #000;
+            padding: 32px;
+            box-shadow: 8px 8px 0px var(--neo-yellow);
+        }
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+        .login-form label {
+            display: block;
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 3px solid #000;
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+        }
+        .login-form input:focus {
+            box-shadow: 3px 3px 0px var(--neo-blue);
+        }
+        .login-form .btn-login {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <svg width="48" height="48" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:12px;">
+                <rect x="1" y="1" width="26" height="26" rx="4" fill="#FFD43B" stroke="#000" stroke-width="2"/>
+                <!-- Piggy bank body -->
+                <ellipse cx="14" cy="16" rx="8" ry="6" fill="#FFB6C1" stroke="#000" stroke-width="1.2"/>
+                <!-- Coin slot -->
+                <rect x="12" y="10.5" width="4" height="1.2" rx="0.6" fill="#000"/>
+                <!-- Eye -->
+                <circle cx="18" cy="14.5" r="1" fill="#000"/>
+                <!-- Snout -->
+                <ellipse cx="21" cy="16" rx="2.2" ry="1.5" fill="#FF9CAD" stroke="#000" stroke-width="0.8"/>
+                <circle cx="20.5" cy="15.7" r="0.5" fill="#000"/>
+                <circle cx="21.5" cy="15.7" r="0.5" fill="#000"/>
+                <!-- Ear -->
+                <ellipse cx="16" cy="11.5" rx="1.8" ry="1.2" fill="#FF9CAD" stroke="#000" stroke-width="0.8" transform="rotate(-20 16 11.5)"/>
+                <!-- Legs -->
+                <rect x="9" y="20.5" width="1.5" height="2.5" rx="0.5" fill="#FFB6C1" stroke="#000" stroke-width="0.7"/>
+                <rect x="12" y="20.5" width="1.5" height="2.5" rx="0.5" fill="#FFB6C1" stroke="#000" stroke-width="0.7"/>
+                <rect x="15" y="20.5" width="1.5" height="2.5" rx="0.5" fill="#FFB6C1" stroke="#000" stroke-width="0.7"/>
+                <rect x="18" y="20.5" width="1.5" height="2.5" rx="0.5" fill="#FFB6C1" stroke="#000" stroke-width="0.7"/>
+            </svg>
+            <h1>MXA</h1>
+            <p>Budget Smart Assistant</p>
+        </div>
+        <form class="login-form" method="post">
+            {% csrf_token %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert-neo alert-neo-error" style="margin-bottom:16px;">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="{{ username|default:'' }}"
+                       autocomplete="username" autofocus required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password"
+                       autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn-neo btn-neo-primary btn-login">
+                Login
+            </button>
+        </form>
+    </div>
+</body>
+</html>

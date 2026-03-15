@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Upload Data - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="budget-toolbar">
+    <div class="version-badge">Data Import</div>
+    <div class="toolbar-filters"></div>
+    <div class="toolbar-actions">
+        <a href="{% url 'importer:sample_csv' %}" class="btn-recalc" style="text-decoration:none;color:#000;">
+            <span class="icon">&#x21E3;</span> Download sample.csv
+        </a>
+        <a href="{% url 'importer:template_download' %}" class="btn-recalc" style="text-decoration:none;color:#000;">
+            <span class="icon">&#x2913;</span> Download Template
+        </a>
+    </div>
+</div>
+
+<div class="card-neo">
+    <form method="post" enctype="multipart/form-data" id="upload-form">
+        {% csrf_token %}
+
+        <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <div class="upload-icon">&#128194;</div>
+            <div class="upload-text">Drop CSV / Excel file here or click to browse</div>
+            <p style="margin-top:8px;font-size:13px;color:#666;">Supported: .csv, .xlsx</p>
+            <input type="file" name="file" id="file-input" accept=".csv,.xlsx,.xls"
+                   style="display:none" onchange="showFileName(this)">
+        </div>
+
+        <div id="file-info" style="display:none;margin-top:16px;">
+            <div class="alert-neo alert-neo-info">
+                <strong>Selected:</strong> <span id="file-name-display"></span>
+            </div>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-neo btn-neo-primary" id="upload-btn" disabled>
+                Upload & Validate
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const uploadBtn = document.getElementById('upload-btn');
+
+function showFileName(input) {
+    if (input.files.length > 0) {
+        document.getElementById('file-name-display').textContent = input.files[0].name;
+        document.getElementById('file-info').style.display = 'block';
+        uploadBtn.disabled = false;
+    }
+}
+
+dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', function() {
+    dropZone.classList.remove('dragover');
+});
+dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
+    showFileName(fileInput);
+});
+</script>
+{% endblock %}

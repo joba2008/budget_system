@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Import Preview - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="budget-toolbar">
+    <div class="version-badge">Import Preview</div>
+    <div class="toolbar-filters"></div>
+    <div class="toolbar-actions"></div>
+</div>
+
+{% if has_errors %}
+<div class="card-neo card-neo-red">
+    <h2 style="font-weight:900;text-transform:uppercase;margin:0 0 16px;">
+        Validation Errors
+    </h2>
+    <div style="max-height:400px;overflow-y:auto;">
+        {% for error in errors %}
+        <div style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.2);font-weight:600;">
+            &#10007; {{ error }}
+        </div>
+        {% endfor %}
+    </div>
+    <p style="margin-top:16px;font-weight:700;">
+        {{ errors|length }} error{{ errors|length|pluralize }} found. Please fix and re-upload.
+    </p>
+    <a href="{% url 'importer:upload' %}" class="btn-neo btn-neo-dark mt-2">Re-upload CSV</a>
+</div>
+
+{% else %}
+<div class="card-neo card-neo-green">
+    <h2 style="font-weight:900;text-transform:uppercase;margin:0 0 16px;">
+        Validation Passed
+    </h2>
+    <p style="font-weight:600;">File: {{ file_name }}</p>
+</div>
+
+<div class="budget-table-container mt-2" style="max-height:none;">
+    <table class="table-neo budget-table">
+        <thead>
+            <tr>
+                <th style="min-width:160px;">Field</th>
+                <th style="min-width:300px;">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Version</strong></td><td>{{ preview.version }}</td></tr>
+            <tr><td><strong>Total Rows</strong></td><td>{{ preview.total_rows }}</td></tr>
+            <tr><td><strong>Departments</strong></td><td>{{ preview.departments|join:", " }}</td></tr>
+            <tr><td><strong>Budgeters</strong></td><td>{{ preview.budgeters|join:", " }}</td></tr>
+            <tr><td><strong>Categories</strong></td><td>{{ preview.categories|length }}</td></tr>
+            <tr><td><strong>Spending Periods</strong></td><td>{{ preview.spending_periods }}</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top:20px;">
+    <form method="post" action="{% url 'importer:confirm' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn-neo btn-neo-primary">Confirm Import</button>
+    </form>
+    <a href="{% url 'importer:upload' %}" class="btn-neo btn-neo-danger" style="margin-left:8px;">Cancel</a>
+</div>
+{% endif %}
+{% endblock %}

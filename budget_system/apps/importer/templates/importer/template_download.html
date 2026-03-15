@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Download Template - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="budget-toolbar">
+    <div class="version-badge">Download CSV Template</div>
+    <div class="toolbar-filters"></div>
+    <div class="toolbar-actions"></div>
+</div>
+
+<div class="card-neo" style="max-width:500px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="version">Select Version</label>
+            <select name="version" id="version" class="input-neo" required>
+                <option value="">-- Select --</option>
+                {% for v in versions %}
+                <option value="{{ v }}">{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-neo btn-neo-primary">Download Template</button>
+    </form>
+</div>
+{% endblock %}

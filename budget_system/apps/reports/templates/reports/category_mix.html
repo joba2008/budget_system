@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load budget_tags %}
+{% block title %}Category Mix - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="budget-toolbar">
+    <div class="version-badge">Category Mix Analysis</div>
+    <form method="get" class="toolbar-filters" id="filter-form">
+        <div class="filter-chip">
+            <label>Version</label>
+            <select name="version" onchange="this.form.submit()">
+                <option value="">-- Select --</option>
+                {% for v in versions %}
+                <option value="{{ v }}" {% if selected_version == v %}selected{% endif %}>{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+    <div class="toolbar-actions"></div>
+</div>
+
+{% if data %}
+<div class="budget-table-container" style="max-height:calc(100vh - 180px);">
+    <table class="table-neo budget-table" id="budget-table">
+        <thead>
+            <tr>
+                <th style="min-width:160px;">Dept PPT</th>
+                {% for cat in data.categories %}
+                <th style="min-width:110px;">{{ cat|truncatechars:15 }}</th>
+                {% endfor %}
+                <th style="min-width:120px;background:#111;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data.rows %}
+            <tr>
+                <td><strong>{{ row.dept_ppt }}</strong></td>
+                {% for cat in data.categories %}
+                {% with cat_data=row.categories|get_item:cat %}
+                <td>
+                    {% if cat_data %}
+                    {{ cat_data.value|format_money }}
+                    <br><small style="color:#888;font-size:10px;">{{ cat_data.pct|floatformat:1 }}%</small>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                {% endwith %}
+                {% endfor %}
+                <td data-role="row-total">{{ row.total|format_money }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ data.rows|length }}</span> departments</span>
+    <span><span class="stat">{{ data.categories|length }}</span> categories</span>
+</div>
+
+{% elif selected_version %}
+<div class="budget-table-container">
+    <div class="budget-empty">
+        <div class="empty-icon">&#x1F4CA;</div>
+        <div class="empty-text">No data found for this version</div>
+    </div>
+</div>
+{% else %}
+<div class="budget-table-container">
+    <div class="budget-empty">
+        <div class="empty-icon">&#x1F50D;</div>
+        <div class="empty-text">Select a version to view category mix</div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

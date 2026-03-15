@@ -1,0 +1,149 @@
+CREATE OR REPLACE FUNCTION bsa_build_sql(p_version VARCHAR)
+  RETURNS TEXT
+  LANGUAGE plpgsql AS
+  $$
+  DECLARE
+      v_ids   BIGINT[];
+      v_ctes  TEXT[] := '{}';
+      v_sel   TEXT[] := ARRAY[
+          'm.version','m.data_type','m.under_ops_control','m.ccgl','m.glc','m.cc',
+          'm.non_controllable','m.area','m.dept','m.dept_group','m.dept_ppt','m.category',
+          'm.discretionary','m.at_var','m.self_study_var','m.spends_control','m.iecs_view',
+          'm.levels','m.accounts','m.budgeter','m.baseline_adjustment'
+      ];
+      v_joins TEXT[] := '{}';
+      v_cases TEXT[];
+      v_pds   TEXT[];
+  BEGIN
+      SELECT ARRAY_AGG(id ORDER BY id) INTO v_ids
+      FROM bsa_main WHERE version = p_version;
+
+      IF v_ids IS NULL THEN RETURN NULL; END IF;
+
+      -- bsa_volume_actual
+      SELECT ARRAY_AGG(period ORDER BY period) INTO v_pds
+      FROM (SELECT DISTINCT period FROM bsa_volume_actual WHERE main_id = ANY(v_ids)) t;
+      IF v_pds IS NOT NULL THEN
+          SELECT ARRAY_AGG(format('MAX(CASE WHEN period=%L THEN value END) AS volume_actual_%s',p,p) ORDER BY p)
+          INTO v_cases FROM UNNEST(v_pds) p;
+          v_ctes  := ARRAY_APPEND(v_ctes, format('va_pivot AS (SELECT main_id,%s FROM bsa_volume_actual WHERE main_id=ANY(%L::bigint[]) GROUP BY main_id)',  
+  array_to_string(v_cases,','), v_ids));
+          SELECT v_sel || ARRAY_AGG(format('va.volume_actual_%s',p) ORDER BY p) INTO v_sel FROM UNNEST(v_pds) p;
+          v_joins := ARRAY_APPEND(v_joins, 'LEFT JOIN va_pivot va ON va.main_id=m.id');
+      END IF;
+
+      -- bsa_volume (scenario + period)
+      SELECT ARRAY_AGG(format('MAX(CASE WHEN scenario=%L AND period=%L THEN value END) AS "volume_%s_%s"', scenario,period,scenario,period) ORDER BY
+  scenario,period)
+      INTO v_cases FROM (SELECT DISTINCT scenario,period FROM bsa_volume WHERE main_id=ANY(v_ids)) t;
+      IF v_cases IS NOT NULL THEN
+          v_ctes := ARRAY_APPEND(v_ctes, format('v_pivot AS (SELECT main_id,%s FROM bsa_volume WHERE main_id=ANY(%L::bigint[]) GROUP BY main_id)',
+  array_to_string(v_cases,','), v_ids));
+          SELECT v_sel || ARRAY_AGG(format('v."volume_%s_%s"',scenario,period) ORDER BY scenario,period) INTO v_sel FROM (SELECT DISTINCT scenario,period    
+  FROM bsa_volume WHERE main_id=ANY(v_ids)) t;
+          v_joins := ARRAY_APPEND(v_joins, 'LEFT JOIN v_pivot v ON v.main_id=m.id');
+      END IF;
+
+      -- bsa_actual
+      SELECT ARRAY_AGG(period ORDER BY period) INTO v_pds FROM (SELECT DISTINCT period FROM bsa_actual WHERE main_id=ANY(v_ids)) t;
+      IF v_pds IS NOT NULL THEN
+          SELECT ARRAY_AGG(format('MAX(CASE WHEN period=%L THEN value END) AS actual_%s',p,p) ORDER BY p) INTO v_cases FROM UNNEST(v_pds) p;
+          v_ctes  := ARRAY_APPEND(v_ctes, format('a_pivot AS (SELECT main_id,%s FROM bsa_actual WHERE main_id=ANY(%L::bigint[]) GROUP BY main_id)',
+  array_to_string(v_cases,','), v_ids));
+          SELECT v_sel || ARRAY_AGG(format('a.actual_%s',p) ORDER BY p) INTO v_sel FROM UNNEST(v_pds) p;
+          v_joins := ARRAY_APPEND(v_joins, 'LEFT JOIN a_pivot a ON a.main_id=m.id');
+      END IF;
+
+      -- bsa_spending
+      SELECT ARRAY_AGG(period ORDER BY period) INTO v_pds FROM (SELECT DISTINCT period FROM bsa_spending WHERE main_id=ANY(v_ids)) t;
+      IF v_pds IS NOT NULL THEN
+          SELECT ARRAY_AGG(format('MAX(CASE WHEN period=%L THEN value END) AS spending_%s',p,p) ORDER BY p) INTO v_cases FROM UNNEST(v_pds) p;
+          v_ctes  := ARRAY_APPEND(v_ctes, format('s_pivot AS (SELECT main_id,%s FROM bsa_spending WHERE main_id=ANY(%L::bigint[]) GROUP BY main_id)',        
+  array_to_string(v_cases,','), v_ids));
+          SELECT v_sel || ARRAY_AGG(format('s.spending_%s',p) ORDER BY p) INTO v_sel FROM UNNEST(v_pds) p;
+          v_joins := ARRAY_APPEND(v_joins, 'LEFT JOIN s_pivot s ON s.main_id=m.id');
+      END IF;
+
+      -- bsa_rebase_financeview
+      SELECT ARRAY_AGG(period ORDER BY period) INTO v_pds FROM (SELECT DISTINCT period FROM bsa_rebase_financeview WHERE main_id=ANY(v_ids)) t;
+      IF v_pds IS NOT NULL THEN
+          SELECT ARRAY_AGG(format('MAX(CASE WHEN period=%L THEN value END) AS rebase_financeview_%s',p,p) ORDER BY p) INTO v_cases FROM UNNEST(v_pds) p;     
+          v_ctes  := ARRAY_APPEND(v_ctes, format('rfv_pivot AS (SELECT main_id,%s FROM bsa_rebase_financeview WHERE main_id=ANY(%L::bigint[]) GROUP BY       
+  main_id)', array_to_string(v_cases,','), v_ids));
+          SELECT v_sel || ARRAY_AGG(format('rfv.rebase_financeview_%s',p) ORDER BY p) INTO v_sel FROM UNNEST(v_pds) p;
+          v_joins := ARRAY_APPEND(v_joins, 'LEFT JOIN rfv_pivot rfv ON rfv.main_id=m.id');
+      END IF;
+
+      -- bsa_rebase_opsview
+      SELECT ARRAY_AGG(period ORDER BY period) INTO v_pds FROM (SELECT DISTINCT period FROM bsa_rebase_opsview WHERE main_id=ANY(v_ids)) t;
+      IF v_pds IS NOT NULL THEN
+          SELECT ARRAY_AGG(format('MAX(CASE WHEN period=%L THEN value END) AS rebase_opsview_%s',p,p) ORDER BY p) INTO v_cases FROM UNNEST(v_pds) p;
+          v_ctes  := ARRAY_APPEND(v_ctes, format('rov_pivot AS (SELECT main_id,%s FROM bsa_rebase_opsview WHERE main_id=ANY(%L::bigint[]) GROUP BY main_id)',
+   array_to_string(v_cases,','), v_ids));
+          SELECT v_sel || ARRAY_AGG(format('rov.rebase_opsview_%s',p) ORDER BY p) INTO v_sel FROM UNNEST(v_pds) p;
+          v_joins := ARRAY_APPEND(v_joins, 'LEFT JOIN rov_pivot rov ON rov.main_id=m.id');
+      END IF;
+
+      -- bsa_saving
+      SELECT ARRAY_AGG(period ORDER BY period) INTO v_pds FROM (SELECT DISTINCT period FROM bsa_saving WHERE main_id=ANY(v_ids)) t;
+      IF v_pds IS NOT NULL THEN
+          SELECT ARRAY_AGG(format('MAX(CASE WHEN period=%L THEN value END) AS saving_%s',p,p) ORDER BY p) INTO v_cases FROM UNNEST(v_pds) p;
+          v_ctes  := ARRAY_APPEND(v_ctes, format('sav_pivot AS (SELECT main_id,%s FROM bsa_saving WHERE main_id=ANY(%L::bigint[]) GROUP BY main_id)',        
+  array_to_string(v_cases,','), v_ids));
+          SELECT v_sel || ARRAY_AGG(format('sav.saving_%s',p) ORDER BY p) INTO v_sel FROM UNNEST(v_pds) p;
+          v_joins := ARRAY_APPEND(v_joins, 'LEFT JOIN sav_pivot sav ON sav.main_id=m.id');
+      END IF;
+
+      -- bsa_newadd
+      SELECT ARRAY_AGG(period ORDER BY period) INTO v_pds FROM (SELECT DISTINCT period FROM bsa_newadd WHERE main_id=ANY(v_ids)) t;
+      IF v_pds IS NOT NULL THEN
+          SELECT ARRAY_AGG(format('MAX(CASE WHEN period=%L THEN value END) AS newadd_%s',p,p) ORDER BY p) INTO v_cases FROM UNNEST(v_pds) p;
+          v_ctes  := ARRAY_APPEND(v_ctes, format('na_pivot AS (SELECT main_id,%s FROM bsa_newadd WHERE main_id=ANY(%L::bigint[]) GROUP BY main_id)',
+  array_to_string(v_cases,','), v_ids));
+          SELECT v_sel || ARRAY_AGG(format('na.newadd_%s',p) ORDER BY p) INTO v_sel FROM UNNEST(v_pds) p;
+          v_joins := ARRAY_APPEND(v_joins, 'LEFT JOIN na_pivot na ON na.main_id=m.id');
+      END IF;
+
+      RETURN format(
+          '%s SELECT %s FROM bsa_main m %s WHERE m.version=%L ORDER BY m.id',
+          CASE WHEN array_length(v_ctes,1) > 0 THEN 'WITH ' || array_to_string(v_ctes,',') ELSE '' END,
+          array_to_string(v_sel,  ','),
+          array_to_string(v_joins,' '),
+          p_version
+      );
+  END;
+  $$;
+
+  -- ② 简化后的 bsa_get_by_version（复用 bsa_build_sql）
+
+  CREATE OR REPLACE FUNCTION bsa_get_by_version(p_version VARCHAR)
+  RETURNS SETOF json
+  LANGUAGE plpgsql AS
+  $$
+  DECLARE v_sql TEXT;
+  BEGIN
+      v_sql := bsa_build_sql(p_version);
+      IF v_sql IS NULL THEN
+          RAISE NOTICE 'version=% 无资料', p_version;
+          RETURN;
+      END IF;
+      RETURN QUERY EXECUTE format('SELECT row_to_json(t) FROM (%s) t', v_sql);
+  END;
+  $$;
+
+  -- ③ 取得平坦格式（DO 块 + 临时表）
+
+  -- 执行一次，产生平坦结果的临时表
+  DO $$
+  DECLARE v_sql TEXT;
+  BEGIN
+      v_sql := bsa_build_sql('fy26-B1');
+      IF v_sql IS NULL THEN
+          RAISE EXCEPTION 'version 不存在';
+      END IF;
+      DROP TABLE IF EXISTS tmp_bsa_result;
+      EXECUTE 'CREATE TEMP TABLE tmp_bsa_result AS ' || v_sql;
+  END $$;
+
+  -- 像一般 table 一样查询，栏位完全平坦
+  SELECT * FROM tmp_bsa_result;

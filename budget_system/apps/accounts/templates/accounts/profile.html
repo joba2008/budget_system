@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Profile - BSA{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Profile</h1>
+</div>
+
+<div class="card-neo" style="max-width:500px;">
+    <table class="table-neo">
+        <tr><th>Username</th><td>{{ user.username }}</td></tr>
+        <tr><th>Email</th><td>{{ user.email|default:'-' }}</td></tr>
+        <tr><th>Role</th><td><span class="badge-neo badge-neo-info">{{ role|upper }}</span></td></tr>
+        <tr><th>Last Login</th><td>{{ user.last_login|date:"Y-m-d H:i"|default:'-' }}</td></tr>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}YoY Comparison - BSA{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Year-over-Year Comparison</h1>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="d-flex gap-2 align-center">
+        <div class="filter-item">
+            <label>Version 1</label>
+            <select name="version1" class="input-neo" onchange="this.form.submit()">
+                <option value="">-- Select --</option>
+                {% for v in versions %}
+                <option value="{{ v }}" {% if version1 == v %}selected{% endif %}>{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-item">
+            <label>Version 2</label>
+            <select name="version2" class="input-neo" onchange="this.form.submit()">
+                <option value="">-- Select --</option>
+                {% for v in versions %}
+                <option value="{{ v }}" {% if version2 == v %}selected{% endif %}>{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if data %}
+<div class="table-wrapper">
+    <table class="table-neo">
+        <thead>
+            <tr>
+                <th>Dept PPT</th>
+                <th class="text-right">{{ version1 }}</th>
+                <th class="text-right">{{ version2 }}</th>
+                <th class="text-right">YoY Change</th>
+                <th class="text-right">YoY %</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td><strong>{{ row.dept_ppt }}</strong></td>
+                <td class="text-right">${{ row.v1|floatformat:0 }}</td>
+                <td class="text-right">${{ row.v2|floatformat:0 }}</td>
+                <td class="text-right {% if row.change > 0 %}negative{% elif row.change < 0 %}positive{% endif %}">
+                    ${{ row.change|floatformat:0 }}
+                </td>
+                <td class="text-right">{{ row.pct|floatformat:1 }}%</td>
+                <td>
+                    {% if row.pct > 50 %}&#9650;&#9650;
+                    {% elif row.pct > 0 %}&#9650;
+                    {% elif row.pct < 0 %}&#9660;
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card-neo" style="text-align:center;padding:48px;color:#666;">
+    Select two versions to compare.
+</div>
+{% endif %}
+{% endblock %}

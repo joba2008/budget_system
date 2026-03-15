@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load budget_tags %}
+{% block title %}{{ version_name }} - Budget Edit{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Toolbar: Version | Filters | Actions -->
+<div class="budget-toolbar">
+    <div class="version-badge">{{ version_name }}</div>
+    <form method="get" class="toolbar-filters" id="filter-form">
+        <input type="hidden" name="type" value="{{ data_type }}">
+        <div class="filter-chip">
+            <label>Area</label>
+            <select name="area" onchange="this.form.submit()">
+                <option value="">All</option>
+                {% for a in filter_options.areas %}
+                <option value="{{ a }}" {% if request.GET.area == a %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-chip">
+            <label>Dept</label>
+            <select name="dept_ppt" onchange="this.form.submit()">
+                <option value="">All</option>
+                {% for d in filter_options.dept_ppts %}
+                <option value="{{ d }}" {% if request.GET.dept_ppt == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-chip">
+            <label>Category</label>
+            <select name="category" onchange="this.form.submit()">
+                <option value="">All</option>
+                {% for c in filter_options.categories %}
+                <option value="{{ c }}" {% if request.GET.category == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if user_role == 'admin' %}
+        <div class="filter-chip">
+            <label>Budgeter</label>
+            <select name="budgeter" onchange="this.form.submit()">
+                <option value="">All</option>
+                {% for b in filter_options.budgeters %}
+                <option value="{{ b }}" {% if request.GET.budgeter == b %}selected{% endif %}>{{ b }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </form>
+    <div class="toolbar-actions">
+        {% if is_under_review %}
+        <span class="badge-neo badge-neo-warning" style="font-size:11px;padding:5px 12px;">Under Review</span>
+        {% endif %}
+        {% if user_role == 'admin' %}
+        {% if data_type == 'rebase_financeview' or data_type == 'rebase_opsview' or data_type == 'overall' or data_type == 'final_budget' %}
+        <button class="btn-recalc" id="recalc-btn" onclick="recalcRebase()">
+            <span class="icon">&#x21bb;</span> Recalculate
+        </button>
+        {% endif %}
+        {% endif %}
+        <span class="save-status" id="save-status"></span>
+    </div>
+</div>
+
+<!-- Data Type Tabs -->
+<div class="data-type-tabs">
+    {% for dt_key, dt_label in data_types %}
+    <a href="?type={{ dt_key }}{% if request.GET.area %}&area={{ request.GET.area }}{% endif %}{% if request.GET.dept_ppt %}&dept_ppt={{ request.GET.dept_ppt }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
+       class="tab {% if data_type == dt_key %}active{% endif %}">
+        {{ dt_label }}
+    </a>
+    {% endfor %}
+</div>
+
+{% if data_type == 'overall' %}
+<!-- ======== OVERALL TABLE (CSV-like flat view) ======== -->
+<div class="budget-table-container">
+    <table class="table-neo budget-table" id="budget-table">
+        <thead>
+            <tr>
+                {% for h in overall.headers %}
+                <th style="min-width:90px;text-align:left;">{{ h }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in overall.rows %}
+            <tr>
+                {% for cell in row %}
+                <td class="text-right cell-readonly">
+                    {% if cell is not None %}{{ cell }}{% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="{{ overall.headers|length }}">
+                <div class="budget-empty">
+                    <div class="empty-icon">&#x1F4CA;</div>
+                    <div class="empty-text">No data found for the selected filters</div>
+                </div>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ overall.rows|length }}</span> rows</span>
+    <span><span class="stat">{{ overall.headers|length }}</span> columns</span>
+</div>
+
+{% else %}
+<!-- ======== SINGLE DATA-TYPE TABLE (editable pivot) ======== -->
+<div class="budget-table-container">
+    <table class="table-neo budget-table" id="budget-table">
+        <thead>
+            <tr>
+                <th class="frozen" style="left:0;min-width:110px;text-align:left;">Dept PPT</th>
+                <th class="frozen" style="left:110px;min-width:90px;text-align:left;">Category</th>
+                <th class="frozen" style="left:200px;min-width:60px;text-align:left;">CC</th>
+                <th class="frozen frozen-last" style="left:260px;min-width:180px;text-align:left;">Account</th>
+                {% for period in periods %}
+                <th style="min-width:90px;text-align:left;">{{ period|truncatechars:11 }}</th>
+                {% endfor %}
+                <th style="min-width:100px;background:#111;text-align:left;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr data-main-id="{{ row.id }}">
+                <td class="frozen" style="left:0;">{{ row.dept_ppt }}</td>
+                <td class="frozen" style="left:110px;">{{ row.category }}</td>
+                <td class="frozen" style="left:200px;">{{ row.cc }}</td>
+                <td class="frozen frozen-last" style="left:260px;" title="{{ row.levels }}">
+                    {{ row.accounts|truncatechars:28 }}
+                </td>
+                {% for period in periods %}
+                <td class="text-right {% if is_editable %}cell-editable{% else %}cell-readonly{% endif %}"
+                    data-period="{{ period }}"
+                    data-table="bsa_{{ data_type }}"
+                    data-main-id="{{ row.id }}"
+                    data-value="{{ row.periods|get_item:period|default_if_none:'' }}">
+                    {{ row.periods|get_item:period|format_number }}
+                </td>
+                {% endfor %}
+                <td class="text-right" data-role="row-total">&mdash;</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="{{ periods|length|add:5 }}">
+                <div class="budget-empty">
+                    <div class="empty-icon">&#x1F4CA;</div>
+                    <div class="empty-text">No data found for the selected filters</div>
+                </div>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ rows|length }}</span> rows</span>
+    <span><span class="stat">{{ periods|length }}</span> periods</span>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if user_role == 'admin' %}
+<script>
+function recalcRebase() {
+    var btn = document.getElementById('recalc-btn');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="icon">&#x23F3;</span> Calculating...';
+    fetch('{% url "budget:api_recalc_rebase" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({ version: '{{ version_name }}' }),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') {
+            btn.innerHTML = '<span class="icon">&#x2713;</span> Done (' + data.updated_count + ')';
+            setTimeout(function() { location.reload(); }, 800);
+        } else {
+            btn.innerHTML = '<span class="icon">&#x2717;</span> ' + (data.message || 'Error');
+            btn.disabled = false;
+        }
+    })
+    .catch(function() {
+        btn.innerHTML = '<span class="icon">&#x2717;</span> Network error';
+        btn.disabled = false;
+    });
+}
+</script>
+{% endif %}
+{% if data_type != 'overall' %}
+<script>
+window.BSA_CONFIG = {
+    csrfToken: '{{ csrf_token }}',
+    cellSaveUrl: '{% url "budget:api_cell_save" %}',
+    isEditable: {{ is_editable|yesno:"true,false" }},
+    dataType: '{{ data_type }}',
+    userRole: '{{ user_role }}',
+};
+</script>
+<script src="{% static 'js/budget_edit.js' %}"></script>
+{% endif %}
+{% endblock %}

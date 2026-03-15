@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load budget_tags %}
+{% block title %}Budget Versions - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="budget-toolbar">
+    <div class="version-badge">Budget Versions</div>
+    <div class="toolbar-filters"></div>
+    <div class="toolbar-actions"></div>
+</div>
+
+<div class="budget-table-container" style="max-height:280px;">
+    <table class="table-neo budget-table" id="budget-table">
+        <thead>
+            <tr>
+                <th style="min-width:140px;">Version</th>
+                <th style="min-width:100px;">Fiscal Year</th>
+                <th style="min-width:100px;">Scenario</th>
+                <th class="text-right" style="min-width:80px;">Rows</th>
+                <th style="min-width:80px;">Status</th>
+                <th style="min-width:200px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in versions %}
+            <tr>
+                <td><strong>{{ v.name }}</strong></td>
+                <td>{{ v.fiscal_year }}</td>
+                <td><span class="badge-neo badge-neo-info">{{ v.scenario }}</span></td>
+                <td class="text-right">{{ v.row_count }}</td>
+                <td>
+                    {% if v.is_under_review %}
+                    <span class="badge-neo badge-neo-warning" style="font-size:10px;">Under Review</span>
+                    {% else %}
+                    <span class="badge-neo badge-neo-default" style="font-size:10px;">Editable</span>
+                    {% endif %}
+                </td>
+                <td style="display:flex;gap:6px;align-items:center;">
+                    {% if v.is_under_review %}
+                    <span class="btn-recalc" style="opacity:0.4;cursor:not-allowed;text-decoration:none;color:#000;">
+                        Edit
+                    </span>
+                    {% else %}
+                    <a href="{% url 'budget:budget_edit' v.name %}" class="btn-recalc" style="text-decoration:none;color:#000;">
+                        Edit
+                    </a>
+                    {% endif %}
+                    {% if not v.is_under_review %}
+                    <form method="post" action="{% url 'status:submit' v.name %}" style="display:inline;margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-recalc" style="background:var(--neo-green);color:#fff;">
+                            <span class="icon">&#x2713;</span> Submit
+                        </button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">
+                <div class="budget-empty">
+                    <div class="empty-icon">&#x1F4C1;</div>
+                    <div class="empty-text">No versions found. Import data to create a version.</div>
+                </div>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ versions|length }}</span> versions</span>
+    <span></span>
+</div>
+
+<!-- Overall Data Table -->
+{% if overall %}
+<div class="budget-toolbar" style="margin-top:12px;">
+    <div class="version-badge">Overall Data</div>
+    <form method="get" class="toolbar-filters">
+        <div class="filter-chip">
+            <label>Version</label>
+            <select name="version" onchange="this.form.submit()">
+                {% for v in versions %}
+                <option value="{{ v.name }}" {% if selected_version == v.name %}selected{% endif %}>{{ v.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+    <div class="toolbar-actions"></div>
+</div>
+
+<div class="budget-table-container" style="max-height:calc(100vh - 520px);">
+    <table class="table-neo budget-table" id="overall-table">
+        <thead>
+            <tr>
+                {% for h in overall.headers %}
+                <th style="min-width:90px;text-align:left;">{{ h }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in overall.rows %}
+            <tr>
+                {% for cell in row %}
+                <td class="text-right cell-readonly">
+                    {% if cell is not None %}{{ cell }}{% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="{{ overall.headers|length }}">
+                <div class="budget-empty">
+                    <div class="empty-icon">&#x1F4CA;</div>
+                    <div class="empty-text">No data found</div>
+                </div>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ overall.rows|length }}</span> rows</span>
+    <span><span class="stat">{{ overall.headers|length }}</span> columns</span>
+</div>
+{% endif %}
+{% endblock %}

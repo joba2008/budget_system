@@ -1,0 +1,352 @@
+/* ============================================================
+   Budget Edit Page - Neo Brutalism Polished
+   ============================================================ */
+
+/* ---- Top toolbar: version | filters | actions ---- */
+.budget-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--neo-white);
+    border: 2.5px solid var(--neo-black);
+    border-radius: 14px;
+    box-shadow: var(--neo-shadow);
+    margin-bottom: 12px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+.budget-toolbar .version-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--neo-black);
+    color: var(--neo-yellow);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 900;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 180px;
+}
+.budget-toolbar .toolbar-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: nowrap;
+}
+.budget-toolbar .filter-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.budget-toolbar .filter-chip label {
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #666;
+    letter-spacing: 0.5px;
+}
+.budget-toolbar .filter-chip select {
+    border: 2px solid var(--neo-black);
+    border-radius: 6px;
+    padding: 4px 24px 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--neo-white);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M5 7L1 3h8z' fill='%23000'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    cursor: pointer;
+    min-width: 90px;
+    outline: none;
+    transition: box-shadow 0.15s;
+}
+.budget-toolbar .filter-chip select:focus {
+    box-shadow: 2px 2px 0 var(--neo-blue);
+}
+.budget-toolbar .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+/* ---- Data type tabs ---- */
+.data-type-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 0;
+}
+.data-type-tabs .tab {
+    flex: 1;
+    text-align: center;
+    padding: 7px 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border: 2.5px solid var(--neo-black);
+    border-bottom: none;
+    background: var(--neo-white);
+    text-decoration: none;
+    color: #888;
+    position: relative;
+    transition: background 0.15s, color 0.15s;
+    border-radius: 10px 10px 0 0;
+}
+.data-type-tabs .tab:not(:first-child) {
+    margin-left: -2.5px;
+}
+.data-type-tabs .tab:hover:not(.active) {
+    background: var(--neo-hover-yellow);
+    color: var(--neo-black);
+}
+.data-type-tabs .tab.active {
+    background: var(--neo-yellow);
+    color: var(--neo-black);
+    z-index: 1;
+}
+
+/* ---- Table container ---- */
+.budget-table-container {
+    overflow-x: auto;
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+    border: 2.5px solid var(--neo-black);
+    border-top: none;
+    box-shadow: 4px 4px 0 var(--neo-black);
+    border-radius: 0 0 14px 14px;
+    background: var(--neo-white);
+}
+
+/* ---- Budget table ---- */
+.budget-table {
+    font-size: 12px;
+    border: none;
+    box-shadow: none;
+    margin: 0;
+}
+.budget-table th {
+    font-size: 10px;
+    white-space: nowrap;
+    padding: 8px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    text-align: left;
+}
+.budget-table td {
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 6px 10px;
+    font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid var(--neo-gray-300);
+    border-right: 1px solid var(--neo-gray-200);
+}
+.budget-table td:last-child {
+    border-right: none;
+}
+.budget-table tr:hover td {
+    background: #FFFDE7 !important;
+}
+.budget-table tr:hover td.frozen {
+    background: #FFFDE7 !important;
+}
+
+/* Editable cells */
+.budget-table .cell-editable {
+    cursor: pointer;
+    min-width: 80px;
+    position: relative;
+    color: #1971c2;
+    background: #fff;
+    transition: background 0.1s;
+}
+.budget-table .cell-editable:hover {
+    background: #E7F5FF !important;
+}
+.budget-table .cell-editing {
+    padding: 0;
+}
+.budget-table .cell-editing input {
+    width: 100%;
+    border: none;
+    border-bottom: 3px solid var(--neo-blue);
+    padding: 6px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    background: #E7F5FF;
+    color: #1971c2;
+}
+.budget-table .cell-modified {
+    background: #FFF3BF !important;
+    position: relative;
+}
+.budget-table .cell-modified::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-top: 6px solid var(--neo-orange);
+    border-left: 6px solid transparent;
+}
+
+/* Readonly cells */
+.budget-table .cell-readonly {
+    color: #343a40;
+    background: #f8f9fa;
+}
+
+/* Error cells */
+.budget-table .cell-error {
+    background: var(--neo-pink) !important;
+    border: 2px solid var(--neo-red);
+}
+
+/* Row total column */
+.budget-table td[data-role="row-total"] {
+    background: var(--neo-gray-100) !important;
+    font-weight: 700;
+    color: var(--neo-black);
+    border-left: 2px solid var(--neo-black);
+}
+
+/* Frozen left dimension columns */
+.budget-table th.frozen,
+.budget-table td.frozen {
+    position: sticky;
+    z-index: 10;
+    background: var(--neo-white);
+    border-right: 1px solid var(--neo-gray-300);
+}
+.budget-table th.frozen {
+    background: var(--neo-black);
+    z-index: 20;
+}
+/* Last frozen column gets a stronger separator */
+.budget-table th.frozen-last,
+.budget-table td.frozen-last {
+    border-right: 2.5px solid var(--neo-black) !important;
+}
+
+/* Alternating row tints */
+.budget-table tbody tr:nth-child(even) td:not(.frozen) {
+    background: #fcfcfc;
+}
+.budget-table tbody tr:nth-child(even) .cell-readonly {
+    background: #f3f4f6;
+}
+
+/* Period column groups */
+.budget-table .period-group-header {
+    background: var(--neo-black) !important;
+    color: var(--neo-yellow);
+    text-align: center;
+    border-left: 2px solid var(--neo-yellow);
+}
+
+/* ---- Save indicator ---- */
+.save-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+.save-status.saving { color: var(--neo-orange); }
+.save-status.saved { color: var(--neo-green-dark); }
+.save-status.error { color: var(--neo-red); }
+
+/* ---- Footer stats bar ---- */
+.budget-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: var(--neo-white);
+    color: #666;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border: 2.5px solid var(--neo-black);
+    border-top: none;
+    box-shadow: 4px 4px 0 var(--neo-black);
+    border-radius: 0 0 14px 14px;
+}
+.budget-footer .stat {
+    color: var(--neo-black);
+    font-weight: 800;
+    margin: 0 2px;
+}
+
+/* ---- Recalc button ---- */
+.btn-recalc {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: var(--neo-yellow);
+    border: 2px solid var(--neo-black);
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--neo-black);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+.btn-recalc:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--neo-black);
+}
+.btn-recalc:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--neo-black);
+}
+.btn-recalc:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+.btn-recalc .icon {
+    font-size: 13px;
+    line-height: 1;
+}
+
+/* ---- Empty state ---- */
+.budget-empty {
+    padding: 64px 24px;
+    text-align: center;
+    color: #888;
+    border: 2.5px solid var(--neo-black);
+    border-top: none;
+    background: var(--neo-white);
+    border-radius: 0 0 14px 14px;
+}
+.budget-empty .empty-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+}
+.budget-empty .empty-text {
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #555;
+}

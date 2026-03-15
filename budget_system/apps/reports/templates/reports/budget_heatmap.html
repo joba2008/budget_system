@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load budget_tags %}
+{% block title %}Budget Heatmap - BSA{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Monthly Budget Utilization Heatmap</h1>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="d-flex gap-2 align-center">
+        <div class="filter-item">
+            <label>Version</label>
+            <select name="version" class="input-neo" onchange="this.form.submit()">
+                <option value="">-- Select --</option>
+                {% for v in versions %}
+                <option value="{{ v }}" {% if selected_version == v %}selected{% endif %}>{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if data %}
+<div class="table-wrapper">
+    <table class="table-neo">
+        <thead>
+            <tr>
+                <th>Dept PPT</th>
+                {% for period in data.periods %}
+                <th class="text-center" style="min-width:70px;">{{ period|truncatechars:8 }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data.rows %}
+            <tr>
+                <td><strong>{{ row.dept_ppt }}</strong></td>
+                {% for period in data.periods %}
+                {% with pct=row.periods|get_item:period %}
+                <td class="heatmap-cell
+                    {% if pct is None %}
+                    {% elif pct < 80 %}heat-deep-green
+                    {% elif pct < 95 %}heat-light-green
+                    {% elif pct <= 105 %}heat-normal
+                    {% elif pct <= 120 %}heat-light-red
+                    {% else %}heat-deep-red{% endif %}"
+                    style="text-align:center;">
+                    {% if pct is not None %}{{ pct|floatformat:0 }}%{% else %}&mdash;{% endif %}
+                </td>
+                {% endwith %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex gap-2 mt-2" style="font-size:12px;">
+    <span class="heatmap-cell heat-deep-green" style="padding:4px 8px;">&lt;80%</span>
+    <span class="heatmap-cell heat-light-green" style="padding:4px 8px;">80-95%</span>
+    <span class="heatmap-cell heat-normal" style="padding:4px 8px;">95-105%</span>
+    <span class="heatmap-cell heat-light-red" style="padding:4px 8px;">105-120%</span>
+    <span class="heatmap-cell heat-deep-red" style="padding:4px 8px;">&gt;120%</span>
+</div>
+{% elif selected_version %}
+<div class="card-neo" style="text-align:center;padding:48px;color:#666;">No data found.</div>
+{% else %}
+<div class="card-neo" style="text-align:center;padding:48px;color:#666;">Select a version.</div>
+{% endif %}
+{% endblock %}

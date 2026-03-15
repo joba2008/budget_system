@@ -1,0 +1,8 @@
+CREATE TABLE bsa_permission (
+    id SERIAL PRIMARY KEY,
+    user_mail TEXT NOT NULL,
+    user_role TEXT NOT NULL,
+    CONSTRAINT uq_user_role UNIQUE (user_mail, user_role)
+);
+INSERT INTO bsa_permission (user_mail, user_role)
+VALUES ('yuchunwei', 'admin');

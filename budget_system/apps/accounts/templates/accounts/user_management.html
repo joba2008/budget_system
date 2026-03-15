@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load budget_tags %}
+{% block title %}User Management - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+<style>
+.area-tags { display:flex; flex-wrap:wrap; gap:4px; }
+.area-tag {
+    display:inline-block; padding:2px 8px; font-size:10px; font-weight:700;
+    background:var(--neo-hover-yellow); border:1.5px solid var(--neo-black);
+    border-radius:6px; text-transform:uppercase; letter-spacing:0.3px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="budget-toolbar">
+    <div class="version-badge">User Management</div>
+    <div class="toolbar-filters"></div>
+    <div class="toolbar-actions">
+        <button class="btn-recalc" onclick="openAddModal()" style="background:var(--neo-green);color:#fff;">
+            <span class="icon">+</span> Add User
+        </button>
+    </div>
+</div>
+
+<!-- User Table -->
+<div class="budget-table-container" style="max-height:calc(100vh - 220px);">
+    <table class="table-neo budget-table" id="user-table">
+        <thead>
+            <tr>
+                <th style="min-width:60px;">ID</th>
+                <th style="min-width:180px;">Username</th>
+                <th style="min-width:120px;">Role</th>
+                <th style="min-width:240px;">Area</th>
+                <th style="min-width:160px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in permissions %}
+            <tr data-pk="{{ p.pk }}">
+                <td>{{ p.pk }}</td>
+                <td class="user-mail">{{ p.user_mail }}</td>
+                <td class="user-role">
+                    <span class="badge-neo {% if p.user_role == 'admin' %}badge-neo-danger{% elif p.user_role == 'budgeter' %}badge-neo-info{% else %}badge-neo-default{% endif %}"
+                          style="display:inline-block;min-width:80px;text-align:center;">
+                        {{ p.user_role|upper }}
+                    </span>
+                </td>
+                <td class="user-area">
+                    <div class="area-tags">
+                        {% for a in p.user_area %}
+                        <span class="area-tag">{{ a }}</span>
+                        {% empty %}
+                        <span style="color:#aaa;font-size:12px;">-</span>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td>
+                    <button class="btn-neo btn-neo-primary btn-neo-sm" onclick='openEditModal({{ p.pk }}, "{{ p.user_mail|escapejs }}", "{{ p.user_role }}", {{ p.user_area|to_json }})' style="border-radius:8px;">
+                        Edit
+                    </button>
+                    <button class="btn-neo btn-neo-danger btn-neo-sm" onclick="deleteUser({{ p.pk }}, '{{ p.user_mail|escapejs }}')" style="border-radius:8px;">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">
+                    <div class="budget-empty">
+                        <div class="empty-icon">&#128100;</div>
+                        <div class="empty-text">No user permissions found</div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ permissions|length }}</span> records</span>
+    <span></span>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="user-modal">
+    <div class="modal-neo" style="max-width:480px;">
+        <div class="modal-title" id="modal-title">Add User</div>
+        <input type="hidden" id="modal-pk" value="">
+        <div class="form-group">
+            <label for="modal-username">Username</label>
+            <input type="text" id="modal-username" class="input-neo" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+            <label for="modal-role">Role</label>
+            <select id="modal-role" class="input-neo">
+                {% for value, label in role_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Area</label>
+            <select id="modal-area" class="input-neo">
+                <option value="">-- Select Area --</option>
+                {% for value, label in area_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+            <button class="btn-neo btn-neo-primary" id="modal-save-btn" onclick="saveUser()" style="flex:1;border-radius:10px;">
+                Save
+            </button>
+            <button class="btn-neo btn-neo-sm" onclick="closeModal()" style="flex:1;border-radius:10px;background:var(--neo-gray-200);">
+                Cancel
+            </button>
+        </div>
+        <div id="modal-error" style="display:none;margin-top:12px;" class="alert-neo alert-neo-error"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var csrfToken = '{{ csrf_token }}';
+    var saveUrl = '{% url "accounts:user_save" %}';
+    var deleteUrl = '{% url "accounts:user_delete" %}';
+
+    window.openAddModal = function() {
+        document.getElementById('modal-title').textContent = 'Add User';
+        document.getElementById('modal-pk').value = '';
+        document.getElementById('modal-username').value = '';
+        document.getElementById('modal-role').value = 'viewer';
+        document.getElementById('modal-area').value = '';
+        document.getElementById('modal-error').style.display = 'none';
+        document.getElementById('user-modal').classList.add('show');
+        document.getElementById('modal-username').focus();
+    };
+
+    window.openEditModal = function(pk, mail, role, areas) {
+        document.getElementById('modal-title').textContent = 'Edit User';
+        document.getElementById('modal-pk').value = pk;
+        document.getElementById('modal-username').value = mail;
+        document.getElementById('modal-role').value = role;
+        // areas is an array from DB, pick the first one for the single select
+        document.getElementById('modal-area').value = (areas && areas.length > 0) ? areas[0] : '';
+        document.getElementById('modal-error').style.display = 'none';
+        document.getElementById('user-modal').classList.add('show');
+        document.getElementById('modal-username').focus();
+    };
+
+    window.closeModal = function() {
+        document.getElementById('user-modal').classList.remove('show');
+    };
+
+    window.saveUser = function() {
+        var pk = document.getElementById('modal-pk').value;
+        var userMail = document.getElementById('modal-username').value.trim();
+        var userRole = document.getElementById('modal-role').value;
+        var areaVal = document.getElementById('modal-area').value;
+        var userArea = areaVal ? [areaVal] : [];
+        var errDiv = document.getElementById('modal-error');
+
+        if (!userMail) {
+            errDiv.textContent = 'Username is required.';
+            errDiv.style.display = 'block';
+            return;
+        }
+
+        var body = {user_mail: userMail, user_role: userRole, user_area: userArea};
+        if (pk) body.pk = parseInt(pk);
+
+        var btn = document.getElementById('modal-save-btn');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        fetch(saveUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify(body),
+        })
+        .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+        .then(function(res) {
+            btn.disabled = false;
+            btn.textContent = 'Save';
+            if (res.ok && res.data.status === 'ok') {
+                location.reload();
+            } else {
+                errDiv.textContent = res.data.message || 'Save failed';
+                errDiv.style.display = 'block';
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.textContent = 'Save';
+            errDiv.textContent = 'Network error';
+            errDiv.style.display = 'block';
+        });
+    };
+
+    window.deleteUser = function(pk, mail) {
+        if (!confirm('Delete permission for "' + mail + '"?')) return;
+
+        fetch(deleteUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify({pk: pk}),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.status === 'ok') {
+                var row = document.querySelector('tr[data-pk="' + pk + '"]');
+                if (row) row.remove();
+            } else {
+                alert('Error: ' + (data.message || 'Delete failed'));
+            }
+        })
+        .catch(function() {
+            alert('Network error');
+        });
+    };
+
+    // Close modal on overlay click
+    document.getElementById('user-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // Enter key to save
+    document.getElementById('modal-username').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') saveUser();
+    });
+})();
+</script>
+{% endblock %}

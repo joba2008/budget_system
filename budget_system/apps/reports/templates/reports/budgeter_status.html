@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Budgeter Status - MXA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Toolbar: Title | Filters | Actions -->
+<div class="budget-toolbar">
+    <div class="version-badge">Budgeter Status</div>
+    <form method="get" class="toolbar-filters" id="filter-form">
+        <div class="filter-chip">
+            <label>Version</label>
+            <select name="version" onchange="this.form.submit()">
+                <option value="">-- Select --</option>
+                {% for v in versions %}
+                <option value="{{ v }}" {% if selected_version == v %}selected{% endif %}>{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+    <div class="toolbar-actions">
+        {% if data %}
+        <a href="{% url 'reports:export' %}?report=budgeter_status&version={{ selected_version }}"
+           class="btn-recalc" style="text-decoration:none;color:#000;">
+            <span class="icon">&#x2913;</span> Export CSV
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if data %}
+<div class="budget-table-container" style="max-height:calc(100vh - 180px);">
+    <table class="table-neo budget-table" id="budget-table">
+        <thead>
+            <tr>
+                <th style="min-width:160px;">Budgeter</th>
+                <th style="min-width:100px;">Total Entries</th>
+                <th style="min-width:80px;">Filled</th>
+                <th style="min-width:80px;">Empty</th>
+                <th style="min-width:140px;width:140px;">Completion</th>
+                <th style="min-width:140px;width:140px;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td><strong>{{ row.budgeter }}</strong></td>
+                <td>{{ row.total }}</td>
+                <td style="color:var(--neo-green-dark);font-weight:700;">{{ row.filled }}</td>
+                <td class="{% if row.empty %}negative{% endif %}" style="font-weight:700;">{{ row.empty }}</td>
+                <td>
+                    <div class="progress-neo" style="width:100%;height:24px;">
+                        <div class="progress-neo-bar" style="width:{{ row.pct }}%;font-size:11px;line-height:24px;">{{ row.pct }}%</div>
+                    </div>
+                </td>
+                <td>
+                    {% if row.pct == 100 %}
+                    <span class="badge-neo badge-neo-success" style="display:flex;align-items:center;justify-content:center;width:100%;height:24px;font-size:11px;">Complete</span>
+                    {% elif row.pct == 0 %}
+                    <span class="badge-neo badge-neo-danger" style="display:flex;align-items:center;justify-content:center;width:100%;height:24px;font-size:11px;">Not Started</span>
+                    {% elif row.pct < 80 %}
+                    <span class="badge-neo badge-neo-warning" style="display:flex;align-items:center;justify-content:center;width:100%;height:24px;font-size:11px;">Follow Up</span>
+                    {% else %}
+                    <span class="badge-neo badge-neo-info" style="display:flex;align-items:center;justify-content:center;width:100%;height:24px;font-size:11px;">In Progress</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="budget-footer">
+    <span><span class="stat">{{ data|length }}</span> budgeters</span>
+    <span></span>
+</div>
+
+{% elif selected_version %}
+<div class="budget-table-container">
+    <div class="budget-empty">
+        <div class="empty-icon">&#x1F4CA;</div>
+        <div class="empty-text">No data found for this version</div>
+    </div>
+</div>
+{% else %}
+<div class="budget-table-container">
+    <div class="budget-empty">
+        <div class="empty-icon">&#x1F50D;</div>
+        <div class="empty-text">Select a version to view budgeter status</div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

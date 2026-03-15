@@ -1,0 +1,249 @@
+-- BSA Budget System
+-- SQL Server schema
+-- Target: Microsoft SQL Server 2019+
+--
+-- Notes:
+-- 1. PostgreSQL array fields are stored as JSON text in SQL Server.
+-- 2. JSON columns use NVARCHAR(MAX) plus ISJSON checks.
+-- 3. This file is aligned to the current SQLAlchemy models and includes bsa_actual.
+
+/* -----------------------------------------------------------
+   Table: dbo.bsa_main
+----------------------------------------------------------- */
+CREATE TABLE dbo.bsa_main (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    version NVARCHAR(50) NULL,
+    data_type NVARCHAR(50) NULL,
+    under_ops_control NVARCHAR(10) NULL,
+    ccgl NVARCHAR(50) NULL,
+    glc NVARCHAR(50) NULL,
+    cc NVARCHAR(50) NULL,
+    non_controllable NVARCHAR(50) NULL,
+    area NVARCHAR(50) NULL,
+    dept NVARCHAR(50) NULL,
+    dept_group NVARCHAR(50) NULL,
+    dept_ppt NVARCHAR(300) NULL,
+    category NVARCHAR(100) NULL,
+    discretionary NVARCHAR(50) NULL,
+    at_var DECIMAL(18,4) NULL,
+    self_study_var DECIMAL(18,4) NULL,
+    spends_control NVARCHAR(10) NULL,
+    iecs_view NVARCHAR(10) NULL,
+    levels NVARCHAR(300) NULL,
+    accounts NVARCHAR(300) NULL,
+    budgeter NVARCHAR(100) NULL,
+    baseline_adjustment DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_main_created_at DEFAULT SYSDATETIME(),
+    updated_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_main_updated_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_main PRIMARY KEY CLUSTERED (id)
+);
+GO
+
+CREATE INDEX IX_bsa_main_version ON dbo.bsa_main (version);
+GO
+CREATE INDEX IX_bsa_main_area ON dbo.bsa_main (area);
+GO
+CREATE INDEX IX_bsa_main_dept ON dbo.bsa_main (dept);
+GO
+CREATE INDEX IX_bsa_main_dept_group ON dbo.bsa_main (dept_group);
+GO
+CREATE INDEX IX_bsa_main_category ON dbo.bsa_main (category);
+GO
+CREATE INDEX IX_bsa_main_budgeter ON dbo.bsa_main (budgeter);
+GO
+CREATE INDEX IX_bsa_main_cc ON dbo.bsa_main (cc);
+GO
+CREATE INDEX IX_bsa_main_version_dept ON dbo.bsa_main (version, dept);
+GO
+CREATE INDEX IX_bsa_main_version_budgeter ON dbo.bsa_main (version, budgeter);
+GO
+
+/* -----------------------------------------------------------
+   Table: dbo.bsa_permission
+----------------------------------------------------------- */
+CREATE TABLE dbo.bsa_permission (
+    id INT IDENTITY(1,1) NOT NULL,
+    user_mail NVARCHAR(320) NOT NULL,
+    user_role NVARCHAR(50) NOT NULL,
+    user_area NVARCHAR(MAX) NULL
+        CONSTRAINT DF_bsa_permission_user_area DEFAULT N'[]',
+    CONSTRAINT PK_bsa_permission PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_permission_user_mail_role UNIQUE (user_mail, user_role),
+    CONSTRAINT CK_bsa_permission_user_area_json
+        CHECK (user_area IS NULL OR ISJSON(user_area) = 1)
+);
+GO
+
+/* -----------------------------------------------------------
+   Table: dbo.bsa_submission_status
+----------------------------------------------------------- */
+CREATE TABLE dbo.bsa_submission_status (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    version NVARCHAR(50) NOT NULL,
+    dept_ppt NVARCHAR(300) NOT NULL,
+    status NVARCHAR(20) NOT NULL
+        CONSTRAINT DF_bsa_submission_status_status DEFAULT N'not_started',
+    submitted_at DATETIME2(0) NULL,
+    updated_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_submission_status_updated_at DEFAULT SYSUTCDATETIME(),
+    submitted_by NVARCHAR(MAX) NULL
+        CONSTRAINT DF_bsa_submission_status_submitted_by DEFAULT N'[]',
+    CONSTRAINT PK_bsa_submission_status PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_submission_status_version_dept_ppt UNIQUE (version, dept_ppt),
+    CONSTRAINT CK_bsa_submission_status_status
+        CHECK (status IN (N'not_started', N'editing', N'under_review', N'complete')),
+    CONSTRAINT CK_bsa_submission_status_submitted_by_json
+        CHECK (submitted_by IS NULL OR ISJSON(submitted_by) = 1)
+);
+GO
+
+CREATE INDEX IX_bsa_submission_status_version ON dbo.bsa_submission_status (version);
+GO
+CREATE INDEX IX_bsa_submission_status_dept_ppt ON dbo.bsa_submission_status (dept_ppt);
+GO
+
+/* -----------------------------------------------------------
+   Child tables
+----------------------------------------------------------- */
+CREATE TABLE dbo.bsa_volume_actual (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_volume_actual_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_volume_actual PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_volume_actual_main_period UNIQUE (main_id, period),
+    CONSTRAINT FK_bsa_volume_actual_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.bsa_volume (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    scenario NVARCHAR(10) NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_volume_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_volume PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_volume_main_scenario_period UNIQUE (main_id, scenario, period),
+    CONSTRAINT FK_bsa_volume_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.bsa_actual (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_actual_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_actual PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_actual_main_period UNIQUE (main_id, period),
+    CONSTRAINT FK_bsa_actual_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.bsa_spending (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_spending_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_spending PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_spending_main_period UNIQUE (main_id, period),
+    CONSTRAINT FK_bsa_spending_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.bsa_rebase_financeview (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_rebase_financeview_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_rebase_financeview PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_rebase_financeview_main_period UNIQUE (main_id, period),
+    CONSTRAINT FK_bsa_rebase_financeview_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.bsa_rebase_opsview (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_rebase_opsview_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_rebase_opsview PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_rebase_opsview_main_period UNIQUE (main_id, period),
+    CONSTRAINT FK_bsa_rebase_opsview_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.bsa_saving (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_saving_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_saving PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_saving_main_period UNIQUE (main_id, period),
+    CONSTRAINT FK_bsa_saving_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.bsa_newadd (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_newadd_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_newadd PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_newadd_main_period UNIQUE (main_id, period),
+    CONSTRAINT FK_bsa_newadd_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.bsa_newadd_approved (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_newadd_approved_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_newadd_approved PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_newadd_approved_main_period UNIQUE (main_id, period),
+    CONSTRAINT FK_bsa_newadd_approved_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.bsa_final_budget (
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    main_id BIGINT NOT NULL,
+    period NVARCHAR(20) NOT NULL,
+    value DECIMAL(18,2) NULL,
+    created_at DATETIME2(0) NOT NULL
+        CONSTRAINT DF_bsa_final_budget_created_at DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bsa_final_budget PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT UQ_bsa_final_budget_main_period UNIQUE (main_id, period),
+    CONSTRAINT FK_bsa_final_budget_main
+        FOREIGN KEY (main_id) REFERENCES dbo.bsa_main (id) ON DELETE CASCADE
+);
+GO
