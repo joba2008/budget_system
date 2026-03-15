@@ -1,6 +1,9 @@
 """Budget models — SQLAlchemy ORM."""
+from datetime import datetime
+
 from sqlalchemy import (
-    Column, Integer, String, Numeric, ForeignKey, Index, UniqueConstraint,
+    Column, BigInteger, Integer, String, Numeric, DateTime,
+    ForeignKey, Index, UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -28,7 +31,7 @@ def parse_version_name(version_name):
 class BsaMain(Base):
     __tablename__ = 'bsa_main'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     version = Column(String(50), index=True)
     data_type = Column(String(50), default='')
     under_ops_control = Column(String(10), default='')
@@ -50,6 +53,8 @@ class BsaMain(Base):
     accounts = Column(String(300), default='')
     budgeter = Column(String(100), index=True)
     baseline_adjustment = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
     volume_actuals = relationship('BsaVolumeActual', back_populates='main', cascade='all, delete-orphan')
@@ -75,10 +80,11 @@ class BsaMain(Base):
 class BsaVolumeActual(Base):
     __tablename__ = 'bsa_volume_actual'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='volume_actuals')
 
@@ -90,11 +96,12 @@ class BsaVolumeActual(Base):
 class BsaVolume(Base):
     __tablename__ = 'bsa_volume'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     scenario = Column(String(10), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='volumes')
 
@@ -106,10 +113,11 @@ class BsaVolume(Base):
 class BsaActual(Base):
     __tablename__ = 'bsa_actual'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='actuals')
 
@@ -121,10 +129,11 @@ class BsaActual(Base):
 class BsaSpending(Base):
     __tablename__ = 'bsa_spending'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='spendings')
 
@@ -136,10 +145,11 @@ class BsaSpending(Base):
 class BsaRebaseFinanceview(Base):
     __tablename__ = 'bsa_rebase_financeview'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='rebase_financeviews')
 
@@ -151,10 +161,11 @@ class BsaRebaseFinanceview(Base):
 class BsaRebaseOpsview(Base):
     __tablename__ = 'bsa_rebase_opsview'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='rebase_opsviews')
 
@@ -166,10 +177,11 @@ class BsaRebaseOpsview(Base):
 class BsaSaving(Base):
     __tablename__ = 'bsa_saving'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='savings')
 
@@ -181,10 +193,11 @@ class BsaSaving(Base):
 class BsaNewadd(Base):
     __tablename__ = 'bsa_newadd'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='newadds')
 
@@ -196,10 +209,11 @@ class BsaNewadd(Base):
 class BsaFinalBudget(Base):
     __tablename__ = 'bsa_final_budget'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='final_budgets')
 
@@ -211,10 +225,11 @@ class BsaFinalBudget(Base):
 class BsaNewaddApproved(Base):
     __tablename__ = 'bsa_newadd_approved'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    main_id = Column(Integer, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    main_id = Column(BigInteger, ForeignKey('bsa_main.id', ondelete='CASCADE'), nullable=False)
     period = Column(String(20), nullable=False)
     value = Column(Numeric(18, 2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     main = relationship('BsaMain', back_populates='newadd_approveds')
 

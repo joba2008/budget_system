@@ -112,18 +112,18 @@ def _period_to_quarter(period):
     year = int(date_part[:4])
     if month >= 9:
         fy_num = year - 2000 + 1
-        if month >= 9 and month <= 11:
-            quarter = 1
+        if month <= 11:
+            quarter = 1   # Sep(9), Oct(10), Nov(11) -> Q1
         else:
-            quarter = 1
+            quarter = 2   # Dec(12) -> Q2
     else:
         fy_num = year - 2000
         if month <= 2:
-            quarter = 2
+            quarter = 2   # Jan(1), Feb(2) -> Q2
         elif month <= 5:
-            quarter = 3
+            quarter = 3   # Mar(3), Apr(4), May(5) -> Q3
         else:
-            quarter = 4
+            quarter = 4   # Jun(6), Jul(7), Aug(8) -> Q4
 
     return f'FY{fy_num}-Q{quarter}'
 

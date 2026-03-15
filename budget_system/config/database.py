@@ -21,13 +21,10 @@ DB_USER = cfg.get('database', 'user', fallback='postgres')
 DB_PASSWORD = cfg.get('database', 'password', fallback='')
 
 if DB_ENGINE == 'mssql':
-    # driver 为可选配置，默认使用 ODBC Driver 17 for SQL Server
-    # 如果安装了 ODBC Driver 18，可在 config.ini 中指定: driver = ODBC Driver 18 for SQL Server
-    DB_DRIVER = cfg.get('database', 'driver', fallback='ODBC Driver 17 for SQL Server')
+    # 使用 pymssql 驱动连接 SQL Server，无需安装 ODBC 驱动
     SQLALCHEMY_DATABASE_URL = (
-        f'mssql+pyodbc://{quote_plus(DB_USER)}:{quote_plus(DB_PASSWORD)}'
+        f'mssql+pymssql://{quote_plus(DB_USER)}:{quote_plus(DB_PASSWORD)}'
         f'@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-        f'?driver={quote_plus(DB_DRIVER)}'
     )
 else:
     SQLALCHEMY_DATABASE_URL = (

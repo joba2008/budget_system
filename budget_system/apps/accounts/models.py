@@ -1,5 +1,5 @@
 """User permission model — SQLAlchemy ORM."""
-from sqlalchemy import Column, Integer, Text, UniqueConstraint, JSON
+from sqlalchemy import Column, Integer, String, UniqueConstraint, JSON
 
 from config.database import Base
 
@@ -31,8 +31,8 @@ class BsaPermission(Base):
     ]
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_mail = Column(Text, nullable=False)
-    user_role = Column(Text, nullable=False)
+    user_mail = Column(String(320), nullable=False)
+    user_role = Column(String(50), nullable=False)
     user_area = Column(JSON, default=list)
 
     __table_args__ = (

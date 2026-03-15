@@ -3,6 +3,9 @@
 import_csv.py
 将 sample.csv 的数据导入到 bsa_* PostgreSQL tables。
 
+注意：此脚本仅支持 PostgreSQL（使用 psycopg2 + RETURNING 语法）。
+      MSSQL 环境请使用 Web 界面的导入功能（apps/importer）。
+
 使用方式:
     python import_csv.py
     python import_csv.py --csv /path/to/file.csv --dbname mydb --user postgres

@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -166,11 +167,13 @@ def submit_status(request, version_name):
                 status_obj = BudgetSubmissionStatus(
                     version=version_name, dept_ppt=dept,
                     status='under_review', submitted_by=[username],
+                    submitted_at=datetime.utcnow(),
                 )
                 session.add(status_obj)
             else:
                 status_obj.status = 'under_review'
                 status_obj.submitted_by = [username]
+                status_obj.submitted_at = datetime.utcnow()
             updated += 1
 
     messages.success(request, f'Budget submitted for review ({updated} departments).')

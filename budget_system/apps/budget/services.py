@@ -32,7 +32,7 @@ def get_budget_data(version, filters=None, data_type='spending'):
             if filters.get('category'):
                 qs = qs.filter(BsaMain.category == filters['category'])
             if filters.get('budgeter'):
-                qs = qs.filter(BsaMain.budgeter == filters['budgeter'])
+                qs = qs.filter(BsaMain.budgeter.startswith(filters['budgeter']))
             if filters.get('under_ops_control'):
                 qs = qs.filter(BsaMain.under_ops_control == filters['under_ops_control'])
             if filters.get('spends_control'):
@@ -556,7 +556,7 @@ def _apply_filters(qs, filters):
     if filters.get('category'):
         qs = qs.filter(BsaMain.category == filters['category'])
     if filters.get('budgeter'):
-        qs = qs.filter(BsaMain.budgeter == filters['budgeter'])
+        qs = qs.filter(BsaMain.budgeter.startswith(filters['budgeter']))
     return qs
 
 

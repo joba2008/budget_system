@@ -15,8 +15,9 @@ host = localhost
 port = 5432
 user = postgres
 password =
-; SQL Server: uncomment and set engine = mssql
-; driver = ODBC Driver 17 for SQL Server
+; SQL Server: set engine = mssql, port = 1433, and install pymssql
+; engine = mssql
+; port = 1433
 
 [ldap]
 enabled = false
